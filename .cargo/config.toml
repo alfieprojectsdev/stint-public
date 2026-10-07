@@ -1,0 +1,9 @@
+# Windows builds use rustup's `stable-x86_64-pc-windows-gnullvm` toolchain plus
+# llvm-mingw (winget MartinStorsjo.LLVM-MinGW.UCRT, its `bin` on PATH while
+# building). `+crt-static` links libunwind into the exe so the result is a
+# single self-contained stint.exe (only system DLLs). MSVC builds are also
+# fine and need none of this. Windows Application Control on the dev box has
+# intermittently blocked freshly compiled build scripts (os error 4551); just
+# rerun the build.
+[target.x86_64-pc-windows-gnullvm]
+rustflags = ["-C", "target-feature=+crt-static"]

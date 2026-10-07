@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Invoice</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        [contenteditable]:hover { background-color: rgba(0,0,0,0.02); outline: 1px dashed #ccc; }
+        [contenteditable]:focus { background-color: white; outline: 2px solid #3b82f6; }
+        @media print {
+            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background-color: white !important; padding: 0 !important; }
+            .no-print { display: none !important; }
+            .shadow-lg { shadow: none !important; }
+            .bg-gray-100 { background-color: white !important; }
+            [contenteditable]:hover { outline: none !important; background: none !important; }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-8 flex flex-col items-center min-h-screen">
+
+    <!-- Controls Toolbar -->
+    <div class="w-[850px] mb-6 flex justify-between items-center no-print bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+        <div class="flex gap-2">
+            <button onclick="addItem()" class="bg-blue-600 text-white px-4 py-2 rounded text-sm font-semibold hover:bg-blue-700 transition shadow-sm">+ Add Item</button>
+            <button onclick="window.print()" class="bg-gray-800 text-white px-4 py-2 rounded text-sm font-semibold hover:bg-gray-900 transition shadow-sm">Print / Save PDF</button>
+            <button onclick="resetData()" class="bg-white text-red-600 border border-red-200 px-4 py-2 rounded text-sm font-semibold hover:bg-red-50 transition">Reset to Default</button>
+        </div>
+        <div class="text-right">
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Status</p>
+            <p id="save-status" class="text-xs text-green-600 font-medium italic">Changes saved to local storage</p>
+        </div>
+    </div>
+
+    <div class="bg-white w-[850px] p-12 shadow-lg relative border border-gray-100">
+
+        <div class="flex justify-between items-start mb-12">
+            <div>
+                <h1 id="brand-name" class="text-2xl font-bold tracking-tight text-gray-900 mb-1" contenteditable="true">[ your brand ]</h1>
+                <p id="sender-name" class="text-sm text-gray-500" contenteditable="true">Your Name</p>
+                <p id="sender-address-1" class="text-sm text-gray-500" contenteditable="true">Street address</p>
+                <p id="sender-address-2" class="text-sm text-gray-500" contenteditable="true">City, Country</p>
+                <p id="sender-email" class="text-sm text-gray-500" contenteditable="true">you@example.com</p>
+            </div>
+            <div class="text-right">
+                <h2 class="text-4xl font-bold text-gray-200 uppercase tracking-widest mb-2">Invoice</h2>
+                <p class="text-sm text-gray-900"><span class="font-semibold">Invoice Number:</span> <span id="invoice-number" contenteditable="true">1001</span></p>
+                <p class="text-sm text-gray-900"><span class="font-semibold">Date of Issue:</span> <span id="issue-date" contenteditable="true">31 March 2026</span></p>
+                <p class="text-sm text-gray-900"><span class="font-semibold">Due Date:</span> <span id="due-date" contenteditable="true">15 April 2026</span></p>
+            </div>
+        </div>
+
+        <div class="mb-12">
+            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 border-b pb-1">Bill To</h3>
+            <p id="client-name" class="text-sm font-semibold text-gray-900" contenteditable="true">Acme Corp LLC</p>
+            <p id="client-addr-1" class="text-sm text-gray-600" contenteditable="true">123 Example St</p>
+            <p id="client-addr-2" class="text-sm text-gray-600" contenteditable="true">Springfield, ST 00000</p>
+            <p id="client-addr-3" class="text-sm text-gray-600" contenteditable="true">USA</p>
+        </div>
+
+        <div class="mb-6">
+            <h3 id="project-title" class="text-lg font-semibold text-gray-900" contenteditable="true">Software Development</h3>
+            <p id="billing-period" class="text-sm text-gray-500" contenteditable="true">Billing Period: 12 March 2026 - 31 March 2026</p>
+        </div>
+
+        <table class="w-full mb-8 text-left border-collapse">
+            <thead>
+                <tr class="border-b-2 border-gray-900 text-sm">
+                    <th class="py-3 font-semibold text-gray-900 w-3/5">Description</th>
+                    <th class="py-3 font-semibold text-gray-900 text-right">Hours</th>
+                    <th class="py-3 font-semibold text-gray-900 text-right">Rate</th>
+                    <th class="py-3 font-semibold text-gray-900 text-right">Total</th>
+                    <th class="no-print"></th>
+                </tr>
+            </thead>
+            <tbody id="invoice-items" class="text-sm text-gray-700">
+                <!-- Rows injected here -->
+            </tbody>
+        </table>
+
+        <div class="flex justify-end mb-16">
+            <div class="w-1/3">
+                <div class="flex justify-between py-2 border-t text-sm">
+                    <span class="text-gray-600">Subtotal</span>
+                    <span class="text-gray-900" id="subtotal">$0.00</span>
+                </div>
+                <div class="flex justify-between py-3 border-t-2 border-gray-900 font-bold text-lg bg-gray-50 -mr-12 pr-12 pl-4 rounded-l-lg">
+                    <span class="text-gray-900">Total Due</span>
+                    <span class="text-gray-900" id="grand-total">$0.00 USD</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-16 pt-8 border-t border-gray-200">
+            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Payment Information</h3>
+            <div class="grid grid-cols-2 gap-4 text-sm">
+                <div id="payment-left" contenteditable="true">
+                    <p><span class="text-gray-500">Bank Name:</span> Example Bank</p>
+                    <p><span class="text-gray-500">Account Name:</span> Your Name</p>
+                    <p><span class="text-gray-500">Account Type:</span> Checking</p>
+                </div>
+                <div id="payment-right" contenteditable="true">
+                    <p><span class="text-gray-500">ACH Routing:</span> [routing number]</p>
+                    <p><span class="text-gray-500">Account Number:</span> [account number]</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'invoice_data';
+        const defaultRate = 16.00;
+
+        const defaultItems = [
+            { desc: "Google Ads API Compliance: Drafted initial architectural design doc, scaffolded local Next.js environment, bypassed missing API keys with mock data payloads, and generated primary UI assets.", hours: 4.25, rate: 16.00 },
+            { desc: "Deep Architecture Analysis: Extracted Phase 1 AST constraints, API schemas, and multi-tenant RLS boundaries from legacy repositories to identify security gaps.", hours: 4.00, rate: 16.00 },
+            { desc: "Phase 1 Architectural Blueprint: Engineered strict 9-milestone implementation plan, defining Next.js multi-tenant routing, Supabase RLS policies, and JSON Logic evaluation loops.", hours: 5.00, rate: 16.00 },
+            { desc: "Phase 1 Implementation (M1): Engineered foundational Supabase database architecture. Implemented 8 core tables with deny-by-default Row Level Security (RLS) and cryptographic tenant isolation.", hours: 1.50, rate: 16.00 },
+            { desc: "Phase 1 Implementation (M5): Engineered dual-tier Bottleneck rate-limiting service for Google Ads API quotas and shared LLM concurrency. Verified queue isolation via unit tests; patched NaN environment configuration vulnerability.", hours: 2.00, rate: 16.00 },
+            { desc: "Phase 1 DevOps & Infrastructure: Provisioned local Dockerized Supabase stack. Configured persistent storage volumes for pg_wal logs and orchestrated local test harness for pgTAP database assertions.", hours: 3.50, rate: 16.00 },
+            { desc: "Phase 1 Implementation (M2): Manual mapping of SQL schema to TypeScript definitions (resolving local CLI outage). Implemented Next.js Edge middleware for tenant verification and dual-tier Supabase client factories.", hours: 2.00, rate: 16.00 },
+            { desc: "Phase 1 Implementation (M3): Engineered JSON Logic AST evaluation engine and dynamic Zod schema compiler for campaign guardrails. Implemented fail-safe routing pipelines to intercept policy violations.", hours: 3.00, rate: 16.00 },
+            { desc: "Phase 1 Documentation & Standards: Codified architectural invariants, security contracts, and multi-tenant RLS boundaries into localized developer documentation (README.md).", hours: 1.20, rate: 16.00 },
+            { desc: "Phase 1 Implementation (M9): Authored directory-level CLAUDE.md navigation indexes and README.md invisible knowledge files for all Phase 1 modules. Documented the PENDING-is-terminal invariant, cache invalidation ordering contract, fail-safe evaluator posture, and the pgvector HNSW inner-product dependency on pre-normalized gemini-embedding-001 outputs.", hours: 3.00, rate: 16.00 }
+        ];
+
+        function calculate() {
+            let total = 0;
+            document.querySelectorAll('.item-row').forEach(row => {
+                const hoursText = row.querySelector('.hours-cell').innerText.trim();
+                const rateText = row.querySelector('.rate-cell').innerText.replace('$', '').trim();
+                
+                const hours = parseFloat(hoursText) || 0;
+                const rate = parseFloat(rateText) || 0;
+                
+                const lineTotal = hours * rate;
+                row.querySelector('.line-total-cell').innerText = `$${lineTotal.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+                total += lineTotal;
+            });
+            
+            const totalStr = `$${total.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('subtotal').innerText = totalStr;
+            document.getElementById('grand-total').innerText = `${totalStr} USD`;
+            saveToStorage();
+        }
+
+        function addItem(desc = "New task description", hours = 0, rate = defaultRate) {
+            const tbody = document.getElementById('invoice-items');
+            const tr = document.createElement('tr');
+            tr.className = "border-b border-gray-100 align-top item-row";
+            tr.innerHTML = `
+                <td class="py-4 pr-4 text-gray-800 leading-relaxed description-cell" contenteditable="true">${desc}</td>
+                <td class="py-4 text-right tabular-nums text-gray-600 whitespace-nowrap hours-cell" contenteditable="true">${hours.toFixed(2)}</td>
+                <td class="py-4 text-right tabular-nums text-gray-600 whitespace-nowrap rate-cell" contenteditable="true">$${rate.toFixed(2)}</td>
+                <td class="py-4 text-right tabular-nums text-gray-900 font-medium whitespace-nowrap line-total-cell">$0.00</td>
+                <td class="py-4 text-right no-print">
+                    <button onclick="this.closest('tr').remove(); calculate();" class="text-red-300 hover:text-red-600 ml-4 transition">✕</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+            calculate();
+        }
+
+        function saveToStorage() {
+            const data = {
+                header: {
+                    brand: document.getElementById('brand-name').innerText,
+                    senderName: document.getElementById('sender-name').innerText,
+                    senderAddr1: document.getElementById('sender-address-1').innerText,
+                    senderAddr2: document.getElementById('sender-address-2').innerText,
+                    senderEmail: document.getElementById('sender-email').innerText,
+                    invoiceNum: document.getElementById('invoice-number').innerText,
+                    issueDate: document.getElementById('issue-date').innerText,
+                    dueDate: document.getElementById('due-date').innerText
+                },
+                client: {
+                    name: document.getElementById('client-name').innerText,
+                    addr1: document.getElementById('client-addr-1').innerText,
+                    addr2: document.getElementById('client-addr-2').innerText,
+                    addr3: document.getElementById('client-addr-3').innerText
+                },
+                project: {
+                    title: document.getElementById('project-title').innerText,
+                    period: document.getElementById('billing-period').innerText
+                },
+                items: Array.from(document.querySelectorAll('.item-row')).map(row => ({
+                    desc: row.querySelector('.description-cell').innerText,
+                    hours: parseFloat(row.querySelector('.hours-cell').innerText) || 0,
+                    rate: parseFloat(row.querySelector('.rate-cell').innerText.replace('$', '')) || 0
+                })),
+                payment: {
+                    left: document.getElementById('payment-left').innerHTML,
+                    right: document.getElementById('payment-right').innerHTML
+                }
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            const status = document.getElementById('save-status');
+            status.innerText = 'Changes saved to local storage';
+            status.classList.replace('text-gray-400', 'text-green-600');
+        }
+
+        function loadFromStorage() {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) {
+                defaultItems.forEach(i => addItem(i.desc, i.hours, i.rate));
+                return;
+            }
+
+            const data = JSON.parse(raw);
+            
+            // Map header
+            document.getElementById('brand-name').innerText = data.header.brand;
+            document.getElementById('sender-name').innerText = data.header.senderName;
+            document.getElementById('sender-address-1').innerText = data.header.senderAddr1;
+            document.getElementById('sender-address-2').innerText = data.header.senderAddr2;
+            document.getElementById('sender-email').innerText = data.header.senderEmail;
+            document.getElementById('invoice-number').innerText = data.header.invoiceNum;
+            document.getElementById('issue-date').innerText = data.header.issueDate;
+            document.getElementById('due-date').innerText = data.header.dueDate;
+
+            // Map client
+            document.getElementById('client-name').innerText = data.client.name;
+            document.getElementById('client-addr-1').innerText = data.client.addr1;
+            document.getElementById('client-addr-2').innerText = data.client.addr2;
+            document.getElementById('client-addr-3').innerText = data.client.addr3;
+
+            // Map project
+            document.getElementById('project-title').innerText = data.project.title;
+            document.getElementById('billing-period').innerText = data.project.period;
+
+            // Map payment
+            document.getElementById('payment-left').innerHTML = data.payment.left;
+            document.getElementById('payment-right').innerHTML = data.payment.right;
+
+            // Map items
+            data.items.forEach(i => addItem(i.desc, i.hours, i.rate));
+        }
+
+        function resetData() {
+            if (confirm('Are you sure you want to reset all data to default values? This will wipe your saved changes.')) {
+                localStorage.removeItem(STORAGE_KEY);
+                location.reload();
+            }
+        }
+
+        // Global event listener for any edits
+        document.addEventListener('input', (e) => {
+            const status = document.getElementById('save-status');
+            status.innerText = 'Saving...';
+            status.classList.replace('text-green-600', 'text-gray-400');
+            
+            if (e.target.closest('.item-row')) {
+                calculate();
+            } else {
+                saveToStorage();
+            }
+        });
+
+        // Initialize
+        loadFromStorage();
+    </script>
+</body>
+</html>

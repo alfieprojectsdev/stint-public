@@ -1,0 +1,16 @@
+# The ledger is shared between Windows, WSL and Linux checkouts. Anything bash
+# executes, and anything the parity oracle reads, must check out LF-only even
+# on a core.autocrlf=true clone.
+* text=auto
+stint.sh text eol=lf
+*.sh text eol=lf
+*.py text eol=lf
+*.rs text eol=lf
+*.toml text eol=lf
+*.csv text eol=lf
+*.txt text eol=lf
+*.md text eol=lf
+*.html text eol=lf
+*.lock text eol=lf
+.gitattributes text eol=lf
+*.json text eol=lf

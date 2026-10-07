@@ -1,0 +1,49 @@
+# --- Financial / business data (NEVER commit — local only) ---
+# Billable time logs, invoice state, exports. Keep the ledger off the repo;
+# this repo versions the TOOLING, not the records.
+# (savd-*.csv is the pre-rename ledger name; *.csv covers both anyway)
+stint-*.csv
+savd-*.csv
+*.csv
+*.csv.bak*
+*.bak
+*.bak-*
+.invoice-counter*
+*.ods
+*.xlsx
+invoices/
+tickets/
+
+# --- Runtime / transient ---
+.timers/
+temp/
+.archive/
+
+# --- Caches / deps ---
+.pytest_cache/
+__pycache__/
+*.pyc
+node_modules/
+ai-reviewer/node_modules/
+
+# --- Agent/editor local ---
+.claude/
+.DS_Store
+*.swp
+
+# --- Allow the demo dataset (synthetic — documents the format, drives STINT_DEMO=1) ---
+# Re-included after the financial/transient rules above. Directory negations must
+# precede the file glob so git can descend into samples/temp (else `temp/` above
+# keeps it excluded and no file under it can be re-included).
+!samples/
+!samples/temp/
+!samples/**
+
+# Rust build output
+target/
+
+# Client identities (names, addresses, counters): personal data, never tracked
+clients.json
+
+# A local `savd` shim/symlink -> stint.sh, for muscle memory after the rename
+/savd

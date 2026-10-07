@@ -1,0 +1,13 @@
+date,start_time,end_time,duration_hrs,category,description
+2026-05-04,09:02:11,10:44:57,1.71,dev,"T21 CSV importer — schema mapping + unit tests (demo-co/widget-pipeline)"
+2026-05-04,11:00:03,11:05:22,0.33,pr,"PR #88 quick skim — flagged missing null-guard (demo-co/widget-pipeline)"
+2026-05-05,13:15:40,15:02:18,1.78,dev,"T21 CSV importer — streaming parse + backpressure (demo-co/widget-pipeline)"
+2026-05-06,manual,manual,2.00,planning,"Q2 roadmap workshop — scope T21/T22/T23, estimate + sequencing"
+2026-05-07,10:30:00,11:48:36,1.31,pr,"PR #88 review — normalizer refactor, added property tests"
+2026-05-08,09:12:04,09:16:41,0.33,async,"Reply Dana: staging cutover go/no-go (demo-co/widget-pipeline)"
+2026-05-11,14:00:12,16:20:49,2.35,research,"Investigate flaky T21 test — race in the chunk reader, root-caused to shared buffer"
+2026-05-12,08:45:33,09:59:10,1.23,devops,"CI matrix for py3.11/3.12 + cache warmup (demo-co/widget-pipeline)"
+2026-05-14,manual,manual,0.50,admin,"Prepare April demo invoice — reconcile hours"
+2026-05-18,10:05:27,12:31:44,2.44,dev,"T22 export adapter — Parquet writer + golden-file tests"
+2026-05-20,13:40:19,14:52:03,1.20,docs,"Architecture note: importer/exporter boundary + failure modes"
+2026-05-22,09:30:00,10:15:48,0.76,standup,"Sprint 14 planning + demo prep"
